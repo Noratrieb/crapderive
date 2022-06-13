@@ -1,6 +1,9 @@
+use std::{fmt::Debug, iter::Peekable};
+
 use dbg_pls::DebugPls;
 use logos::{Lexer, Logos, Span};
-use std::iter::Peekable;
+
+use crate::error::{CompilerError, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq, Logos, DebugPls)]
 pub enum Token<'a> {
@@ -43,18 +46,13 @@ pub fn lex(src: &str) -> Lexer<'_, Token<'_>> {
     <Token as Logos>::lexer(src)
 }
 
-pub fn run(src: &str) {
-    let tokens = lex(src).collect::<Vec<_>>();
-    dbg_pls::color!(tokens);
-}
-
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, DebugPls)]
 pub struct Stmt {
     pub kind: StmtKind,
     pub span: Span,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, DebugPls)]
 pub enum StmtKind {
     Mov { to: Expr, from: Expr },
     Add { to: Expr, value: Expr },
@@ -64,54 +62,85 @@ pub enum StmtKind {
     Jmp { to: Expr },
     Je { to: Expr },
     Cmp { rhs: Expr, lhs: Expr },
+    Label { name: String },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, DebugPls)]
 pub struct Expr {
     pub kind: ExprKind,
     pub span: Span,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, DebugPls)]
 pub enum ExprKind {
-    Register,
-    Number,
+    Register(u8),
+    Number(u64),
     Addr(Box<Expr>),
+    Name(String),
 }
 
 struct Parser<'a, I>
 where
-    I: Iterator<Item = Token<'a>>,
+    I: Iterator<Item = (Token<'a>, Span)>,
 {
     iter: Peekable<I>,
 }
 
-struct CompilerError;
+impl CompilerError {
+    fn new(msg: String, span: Span) -> Self {
+        Self { span, msg }
+    }
 
-type Result<T> = std::result::Result<T, CompilerError>;
+    fn not_allowed(span: Span, token: &str) -> Self {
+        Self::new(format!("`{token}` is not allowed here"), span)
+    }
 
-macro_rules! expect {
-    ($self:ident, $token:pat) => {
-        if let $token = $self.next()? {
-            return Err(CompilerError);
+    fn invalid_token(span: Span) -> Self {
+        Self::new("Invalid token".to_string(), span)
+    }
+    fn eof() -> Self {
+        Self {
+            span: Default::default(),
+            msg: "Unexpected end of file".to_string(),
         }
-    };
+    }
 }
 
-fn stmt(kind: StmtKind, span: Span) -> Stmt {
-    Stmt { kind, span }
+macro_rules! expect {
+    ($self:ident, $token:pat) => {{
+        let (next, span) = $self.next()?;
+        if let $token = next {
+            span
+        } else {
+            return Err(CompilerError {
+                msg: format!(
+                    concat!("Expected ", stringify!($token), ", found {:?}"),
+                    next,
+                ),
+                span,
+            });
+        }
+    }};
 }
 
 impl<'a, I> Parser<'a, I>
 where
-    I: Iterator<Item = Token<'a>>,
+    I: Iterator<Item = (Token<'a>, Span)>,
 {
     fn program(&mut self) -> Result<Vec<Stmt>> {
-        todo!()
+        let mut stmts = Vec::new();
+        while let Ok(_) = self.peek() {
+            let stmt = self.stmt()?;
+            stmts.push(stmt);
+        }
+        Ok(stmts)
     }
 
     fn stmt(&mut self) -> Result<Stmt> {
-        Ok(match self.next()? {
+        let stmt = |kind, span| Stmt { kind, span };
+
+        let (token, span) = self.next()?;
+        Ok(match token {
             Token::Mov => {
                 let to = self.expr()?;
                 expect!(self, Token::Comma);
@@ -135,29 +164,101 @@ where
                 let rhs = self.expr()?;
                 stmt(StmtKind::Cmp { lhs, rhs }, Default::default())
             }
-            Token::Add => {}
-            Token::Sub => {}
-            Token::Mul => {}
-            Token::Div => {}
-            Token::BracketOpen => {}
-            Token::BracketClose => {}
-            Token::Comma => {}
-            Token::Label(_) => {}
-            Token::Number(_) => {}
-            Token::Word(_) => {}
-            Token::Error => {}
+            Token::Add => {
+                let to = self.expr()?;
+                expect!(self, Token::Comma);
+                let value = self.expr()?;
+                stmt(StmtKind::Add { to, value }, Default::default())
+            }
+            Token::Sub => {
+                let to = self.expr()?;
+                expect!(self, Token::Comma);
+                let value = self.expr()?;
+                stmt(StmtKind::Sub { to, value }, Default::default())
+            }
+            Token::Mul => {
+                let to = self.expr()?;
+                expect!(self, Token::Comma);
+                let value = self.expr()?;
+                stmt(StmtKind::Mul { to, value }, Default::default())
+            }
+            Token::Div => {
+                let to = self.expr()?;
+                expect!(self, Token::Comma);
+                let value = self.expr()?;
+                stmt(StmtKind::Div { to, value }, Default::default())
+            }
+            Token::Label(name) => stmt(
+                StmtKind::Label {
+                    name: name.to_owned(),
+                },
+                Default::default(),
+            ),
+            Token::BracketOpen => return Err(CompilerError::not_allowed(span, "[")),
+            Token::BracketClose => return Err(CompilerError::not_allowed(span, "]")),
+            Token::Comma => return Err(CompilerError::not_allowed(span, ",")),
+            Token::Number(_) => return Err(CompilerError::not_allowed(span, "{number}")),
+            Token::Word(_) => return Err(CompilerError::not_allowed(span, "{word}")),
+            Token::Error => return Err(CompilerError::invalid_token(span)),
         })
     }
 
     fn expr(&mut self) -> Result<Expr> {
-        todo!()
+        let expr = |kind, span| Expr { kind, span };
+
+        let (token, span) = self.next()?;
+        Ok(match token {
+            Token::BracketOpen => {
+                let inner = self.expr()?;
+                let bclose_span = expect!(self, Token::BracketClose);
+                expr(ExprKind::Addr(Box::new(inner)), span.start..bclose_span.end)
+            }
+            Token::Number(n) => expr(ExprKind::Number(n), span),
+            Token::Word(name) => {
+                if let Some(r_number) = name.strip_prefix("r") {
+                    if let Ok(n) = r_number.parse::<u8>() {
+                        if n > 15 {
+                            return Err(CompilerError::new(
+                                format!("Only registers from 0..15 are available. Invalid register: {n}"),
+                                span,
+                            ));
+                        }
+                        return Ok(expr(ExprKind::Register(n), span));
+                    }
+                }
+                expr(ExprKind::Name(name.to_owned()), span)
+            }
+            Token::Mov => return Err(CompilerError::not_allowed(span, "mov")),
+            Token::Jmp => return Err(CompilerError::not_allowed(span, "jmp")),
+            Token::Je => return Err(CompilerError::not_allowed(span, "je")),
+            Token::Cmp => return Err(CompilerError::not_allowed(span, "cmp")),
+            Token::Add => return Err(CompilerError::not_allowed(span, "add")),
+            Token::Sub => return Err(CompilerError::not_allowed(span, "sub")),
+            Token::Mul => return Err(CompilerError::not_allowed(span, "mul")),
+            Token::Div => return Err(CompilerError::not_allowed(span, "div")),
+            Token::BracketClose => return Err(CompilerError::not_allowed(span, "]")),
+            Token::Comma => return Err(CompilerError::not_allowed(span, ",")),
+            Token::Label(_) => return Err(CompilerError::not_allowed(span, "{label}")),
+            Token::Error => return Err(CompilerError::invalid_token(span)),
+        })
     }
 
-    fn peek(&mut self) -> Result<&Token<'a>> {
-        self.iter.peek().ok_or(CompilerError)
+    fn peek(&mut self) -> Result<&(Token<'a>, Span)> {
+        self.iter.peek().ok_or(CompilerError::eof())
     }
 
-    fn next(&mut self) -> Result<Token<'a>> {
-        self.iter.next().ok_or(CompilerError)
+    fn next(&mut self) -> Result<(Token<'a>, Span)> {
+        self.iter.next().ok_or(CompilerError::eof())
     }
 }
+
+pub fn parse(src: &str) -> Result<Vec<Stmt>> {
+    let lexer = lex(src).spanned();
+    let mut parser = Parser {
+        iter: lexer.peekable(),
+    };
+    parser.program()
+}
+
+#[cfg(test)]
+mod tests {}

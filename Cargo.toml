@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 dbg-pls = { version = "0.3.2", features = ["colors", "derive"] }
 logos = "0.12.1"
+
+[dev-dependencies]
+insta = "1.14.1"
