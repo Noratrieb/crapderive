@@ -7,7 +7,7 @@ jmp exit
 
 // loop
 false:
-mov r1, [8]
+mov r5, [8]
 jmp false
 
 

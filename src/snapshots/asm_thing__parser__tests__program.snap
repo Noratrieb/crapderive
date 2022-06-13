@@ -1,0 +1,126 @@
+---
+source: src/parser.rs
+expression: result
+---
+Ok(
+    [
+        Stmt {
+            kind: Mov {
+                to: Expr {
+                    kind: Register(
+                        0,
+                    ),
+                    span: 5..7,
+                },
+                from: Expr {
+                    kind: Number(
+                        3,
+                    ),
+                    span: 9..10,
+                },
+            },
+            span: 1..10,
+        },
+        Stmt {
+            kind: Cmp {
+                lhs: Expr {
+                    kind: Register(
+                        0,
+                    ),
+                    span: 15..17,
+                },
+                rhs: Expr {
+                    kind: Number(
+                        8,
+                    ),
+                    span: 19..20,
+                },
+            },
+            span: 11..20,
+        },
+        Stmt {
+            kind: Je {
+                to: Expr {
+                    kind: Name(
+                        "true",
+                    ),
+                    span: 24..28,
+                },
+            },
+            span: 21..28,
+        },
+        Stmt {
+            kind: Jmp {
+                to: Expr {
+                    kind: Name(
+                        "false",
+                    ),
+                    span: 33..38,
+                },
+            },
+            span: 29..38,
+        },
+        Stmt {
+            kind: Label {
+                name: "true",
+            },
+            span: 39..44,
+        },
+        Stmt {
+            kind: Jmp {
+                to: Expr {
+                    kind: Name(
+                        "exit",
+                    ),
+                    span: 49..53,
+                },
+            },
+            span: 45..53,
+        },
+        Stmt {
+            kind: Label {
+                name: "false",
+            },
+            span: 63..69,
+        },
+        Stmt {
+            kind: Mov {
+                to: Expr {
+                    kind: Register(
+                        1,
+                    ),
+                    span: 74..76,
+                },
+                from: Expr {
+                    kind: Addr(
+                        Expr {
+                            kind: Number(
+                                8,
+                            ),
+                            span: 79..80,
+                        },
+                    ),
+                    span: 78..81,
+                },
+            },
+            span: 70..81,
+        },
+        Stmt {
+            kind: Jmp {
+                to: Expr {
+                    kind: Name(
+                        "false",
+                    ),
+                    span: 86..91,
+                },
+            },
+            span: 82..91,
+        },
+        Stmt {
+            kind: Label {
+                name: "exit",
+            },
+            span: 94..99,
+        },
+    ],
+)

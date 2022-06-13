@@ -61,7 +61,7 @@ pub enum StmtKind {
     Div { to: Expr, value: Expr },
     Jmp { to: Expr },
     Je { to: Expr },
-    Cmp { rhs: Expr, lhs: Expr },
+    Cmp { lhs: Expr, rhs: Expr },
     Label { name: String },
 }
 
@@ -87,21 +87,36 @@ where
 }
 
 impl CompilerError {
-    fn new(msg: String, span: Span) -> Self {
-        Self { span, msg }
+    fn new(msg: String, span: Span, notes: Vec<(String, Span)>, help: Option<String>) -> Self {
+        Self {
+            msg,
+            span,
+            notes,
+            help,
+        }
+    }
+
+    fn simple(msg: String, span: Span) -> Self {
+        Self::new_notes(msg, span, Vec::new())
+    }
+
+    fn new_notes(msg: String, span: Span, notes: Vec<(String, Span)>) -> Self {
+        Self::new(msg, span, notes, None)
     }
 
     fn not_allowed(span: Span, token: &str) -> Self {
-        Self::new(format!("`{token}` is not allowed here"), span)
+        Self::simple(format!("`{token}` is not allowed here"), span)
     }
 
     fn invalid_token(span: Span) -> Self {
-        Self::new("Invalid token".to_string(), span)
+        Self::simple("Invalid token".to_string(), span)
     }
     fn eof() -> Self {
         Self {
-            span: Default::default(),
+            span: 0..0,
             msg: "Unexpected end of file".to_string(),
+            notes: Vec::new(),
+            help: None,
         }
     }
 }
@@ -112,13 +127,13 @@ macro_rules! expect {
         if let $token = next {
             span
         } else {
-            return Err(CompilerError {
-                msg: format!(
+            return Err(CompilerError::simple(
+                format!(
                     concat!("Expected ", stringify!($token), ", found {:?}"),
                     next,
                 ),
                 span,
-            });
+            ));
         }
     }};
 }
@@ -137,7 +152,7 @@ where
     }
 
     fn stmt(&mut self) -> Result<Stmt> {
-        let stmt = |kind, span| Stmt { kind, span };
+        let stmt = |span, kind| Stmt { kind, span };
 
         let (token, span) = self.next()?;
         Ok(match token {
@@ -145,60 +160,65 @@ where
                 let to = self.expr()?;
                 expect!(self, Token::Comma);
                 let from = self.expr()?;
-                stmt(StmtKind::Mov { to, from }, Default::default())
+                stmt(span.start..from.span.end, StmtKind::Mov { to, from })
             }
             Token::Jmp => {
                 let to = self.expr()?;
-                Stmt {
-                    kind: StmtKind::Jmp { to },
-                    span: Default::default(),
-                }
+                stmt(span.start..to.span.end, StmtKind::Jmp { to })
             }
             Token::Je => {
                 let to = self.expr()?;
-                stmt(StmtKind::Je { to }, Default::default())
+                stmt(span.start..to.span.end, StmtKind::Je { to })
             }
             Token::Cmp => {
                 let lhs = self.expr()?;
                 expect!(self, Token::Comma);
                 let rhs = self.expr()?;
-                stmt(StmtKind::Cmp { lhs, rhs }, Default::default())
+                stmt(span.start..rhs.span.end, StmtKind::Cmp { lhs, rhs })
             }
             Token::Add => {
                 let to = self.expr()?;
                 expect!(self, Token::Comma);
                 let value = self.expr()?;
-                stmt(StmtKind::Add { to, value }, Default::default())
+                stmt(span.start..value.span.end, StmtKind::Add { to, value })
             }
             Token::Sub => {
                 let to = self.expr()?;
                 expect!(self, Token::Comma);
                 let value = self.expr()?;
-                stmt(StmtKind::Sub { to, value }, Default::default())
+                stmt(span.start..value.span.end, StmtKind::Sub { to, value })
             }
             Token::Mul => {
                 let to = self.expr()?;
                 expect!(self, Token::Comma);
                 let value = self.expr()?;
-                stmt(StmtKind::Mul { to, value }, Default::default())
+                stmt(span.start..value.span.end, StmtKind::Mul { to, value })
             }
             Token::Div => {
                 let to = self.expr()?;
                 expect!(self, Token::Comma);
                 let value = self.expr()?;
-                stmt(StmtKind::Div { to, value }, Default::default())
+                stmt(span.start..value.span.end, StmtKind::Div { to, value })
             }
-            Token::Label(name) => stmt(
-                StmtKind::Label {
-                    name: name.to_owned(),
-                },
-                Default::default(),
-            ),
+            Token::Label(name) => {
+                let name = name
+                    .strip_suffix(":")
+                    .expect("lexer produced invalid label")
+                    .to_owned();
+                stmt(span, StmtKind::Label { name })
+            }
             Token::BracketOpen => return Err(CompilerError::not_allowed(span, "[")),
             Token::BracketClose => return Err(CompilerError::not_allowed(span, "]")),
             Token::Comma => return Err(CompilerError::not_allowed(span, ",")),
             Token::Number(_) => return Err(CompilerError::not_allowed(span, "{number}")),
-            Token::Word(_) => return Err(CompilerError::not_allowed(span, "{word}")),
+            Token::Word(word) => {
+                return Err(CompilerError::new(
+                    "{word}".to_string(),
+                    span.clone(),
+                    vec![],
+                    Some(format!("Consider using a label instead: `{}:`", word)),
+                ))
+            }
             Token::Error => return Err(CompilerError::invalid_token(span)),
         })
     }
@@ -219,8 +239,10 @@ where
                     if let Ok(n) = r_number.parse::<u8>() {
                         if n > 15 {
                             return Err(CompilerError::new(
-                                format!("Only registers from 0..15 are available. Invalid register: {n}"),
-                                span,
+                                format!("Invalid register number: {n}"),
+                                span.clone(),
+                                vec![("Registers available: r0..r15".to_owned(), span)],
+                                None,
                             ));
                         }
                         return Ok(expr(ExprKind::Register(n), span));
@@ -261,4 +283,27 @@ pub fn parse(src: &str) -> Result<Vec<Stmt>> {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    #[test]
+    fn program() {
+        let result = super::parse(
+            "
+mov r0, 3
+cmp r0, 8
+je true
+jmp false
+true:
+jmp exit
+
+// loop
+false:
+mov r1, [8]
+jmp false
+
+
+exit:
+        ",
+        );
+        insta::assert_debug_snapshot!(result);
+    }
+}
