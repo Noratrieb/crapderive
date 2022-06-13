@@ -46,10 +46,16 @@ pub fn lex(src: &str) -> Lexer<'_, Token<'_>> {
     <Token as Logos>::lexer(src)
 }
 
-#[derive(Debug, PartialEq, Eq, DebugPls)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Stmt {
     pub kind: StmtKind,
     pub span: Span,
+}
+
+impl DebugPls for Stmt {
+    fn fmt(&self, f: dbg_pls::Formatter<'_>) {
+        DebugPls::fmt(&self.kind, f)
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, DebugPls)]
@@ -65,10 +71,16 @@ pub enum StmtKind {
     Label { name: String },
 }
 
-#[derive(Debug, PartialEq, Eq, DebugPls)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Expr {
     pub kind: ExprKind,
     pub span: Span,
+}
+
+impl DebugPls for Expr {
+    fn fmt(&self, f: dbg_pls::Formatter<'_>) {
+        DebugPls::fmt(&self.kind, f)
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, DebugPls)]
