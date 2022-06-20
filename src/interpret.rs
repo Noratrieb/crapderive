@@ -22,6 +22,8 @@ impl Register {
     }
 }
 
+const MEMORY_SIZE = 1024 * 1024 * 1024;
+
 struct InterpretCtx {
     memory: Vec<u8>,
     registers: [u64; 16],
@@ -151,9 +153,10 @@ impl InterpretCtx {
     }
 }
 
+
 pub fn interpret(stmts: Vec<Stmt>, spans: Vec<Span>) -> Result<()> {
     let mut ctx = InterpretCtx {
-        memory: vec![0; 100_000],
+        memory: vec![0; MEMORY_SIZE],
         registers: [0; 16],
         flag: false,
         stmts,
