@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, DebugPls)]
-pub struct Register(u8);
+pub struct Register(pub u8);
 
 #[derive(Debug, Clone, Copy, DebugPls)]
 pub enum Place {
@@ -30,7 +30,7 @@ pub enum Value {
 
 #[derive(Debug, Clone, Copy, DebugPls)]
 pub struct Location {
-    index: usize,
+    pub index: usize,
 }
 
 #[derive(Debug, Clone, Copy, DebugPls)]
