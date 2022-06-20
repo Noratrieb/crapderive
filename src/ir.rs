@@ -40,6 +40,7 @@ pub enum Stmt {
     Mul { to: Place, value: Value },
     Div { to: Place, value: Value },
     Jmp { to: Location },
+    Je { to: Location },
     Cmp { lhs: Value, rhs: Value },
 }
 
@@ -64,11 +65,42 @@ impl CompileCtx {
                 let to = self.compile_place(to)?;
                 let stmt = Stmt::Mov { from, to };
                 self.stmts.push(stmt);
-                self.spans.push(p_stmt.span);
             }
-            _ => todo!("other stmt"),
+            StmtKind::Add { to, value } => {
+                let to = self.compile_place(to)?;
+                let value = self.compile_value(value)?;
+                let stmt = Stmt::Add { to, value };
+                self.stmts.push(stmt);
+            }
+            StmtKind::Sub { to, value } => {
+                let to = self.compile_place(to)?;
+                let value = self.compile_value(value)?;
+                let stmt = Stmt::Sub { to, value };
+                self.stmts.push(stmt);
+            }
+            StmtKind::Mul { to, value } => {
+                let to = self.compile_place(to)?;
+                let value = self.compile_value(value)?;
+                let stmt = Stmt::Mul { to, value };
+                self.stmts.push(stmt);
+            }
+            StmtKind::Div { to, value } => {
+                let to = self.compile_place(to)?;
+                let value = self.compile_value(value)?;
+                let stmt = Stmt::Div { to, value };
+                self.stmts.push(stmt);
+            }
+            StmtKind::Jmp { .. } => todo!("jmp"),
+            StmtKind::Je { .. } => todo!("je"),
+            StmtKind::Cmp { lhs, rhs } => {
+                let lhs = self.compile_value(lhs)?;
+                let rhs = self.compile_value(rhs)?;
+                let stmt = Stmt::Cmp { lhs, rhs };
+                self.stmts.push(stmt);
+            }
+            StmtKind::Label { .. } => {}
         }
-
+        self.spans.push(p_stmt.span);
         Ok(())
     }
 

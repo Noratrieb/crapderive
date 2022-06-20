@@ -9,6 +9,27 @@ pub struct CompilerError {
     pub notes: Vec<(String, Span)>,
     pub help: Option<String>,
 }
+impl CompilerError {
+    pub fn new(msg: String, span: Span, notes: Vec<(String, Span)>, help: Option<String>) -> Self {
+        Self {
+            msg,
+            span,
+            notes,
+            help,
+        }
+    }
+
+    pub fn simple(msg: String, span: Span) -> Self {
+        Self::new_notes(msg, span, Vec::new())
+    }
+
+    pub fn help(msg: String, span: Span, help: String) -> Self {
+        Self::new(msg, span, Vec::new(), Some(help))
+    }
+    pub fn new_notes(msg: String, span: Span, notes: Vec<(String, Span)>) -> Self {
+        Self::new(msg, span, notes, None)
+    }
+}
 
 pub type Result<T> = std::result::Result<T, CompilerError>;
 

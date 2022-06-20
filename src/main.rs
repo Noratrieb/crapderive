@@ -1,4 +1,6 @@
-use std::io;
+use std::{io, process};
+
+use crate::error::CompilerError;
 
 mod error;
 mod ir;
@@ -8,12 +10,15 @@ fn main() -> Result<(), io::Error> {
     let file = std::fs::read_to_string("./test.at")?;
     let result = parser::parse(&file);
 
-    match result {
-        Ok(ast) => {
-            dbg_pls::color!(ast);
-        }
-        Err(error) => error::report(error, "test.at", &file),
-    }
+    let ast = result.unwrap_or_else(|e| report_and_exit(&file, e));
+    dbg_pls::color!(&ast);
+    let stmts = ir::compile(ast.into_iter()).unwrap_or_else(|e| report_and_exit(&file, e));
+    dbg_pls::color!(stmts.0);
 
     Ok(())
+}
+
+fn report_and_exit(file: &str, error: CompilerError) -> ! {
+    error::report(error, "test.at", &file);
+    process::exit(1);
 }

@@ -88,7 +88,7 @@ pub enum ExprKind {
     Register(u8),
     Number(u64),
     Addr(Box<Expr>),
-    Name(String),
+    Symbol(String),
 }
 
 struct Parser<'a, I>
@@ -99,23 +99,6 @@ where
 }
 
 impl CompilerError {
-    fn new(msg: String, span: Span, notes: Vec<(String, Span)>, help: Option<String>) -> Self {
-        Self {
-            msg,
-            span,
-            notes,
-            help,
-        }
-    }
-
-    fn simple(msg: String, span: Span) -> Self {
-        Self::new_notes(msg, span, Vec::new())
-    }
-
-    fn new_notes(msg: String, span: Span, notes: Vec<(String, Span)>) -> Self {
-        Self::new(msg, span, notes, None)
-    }
-
     fn not_allowed(span: Span, token: &str) -> Self {
         Self::simple(format!("`{token}` is not allowed here"), span)
     }
@@ -260,7 +243,7 @@ where
                         return Ok(expr(ExprKind::Register(n), span));
                     }
                 }
-                expr(ExprKind::Name(name.to_owned()), span)
+                expr(ExprKind::Symbol(name.to_owned()), span)
             }
             Token::Mov => return Err(CompilerError::not_allowed(span, "mov")),
             Token::Jmp => return Err(CompilerError::not_allowed(span, "jmp")),
