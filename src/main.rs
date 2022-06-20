@@ -1,6 +1,7 @@
 use std::io;
 
 mod error;
+mod ir;
 mod parser;
 
 fn main() -> Result<(), io::Error> {
