@@ -22,29 +22,27 @@ impl Register {
     }
 }
 
-const MEMORY_SIZE = 1024 * 1024 * 1024;
+const MEMORY_SIZE: usize = 1024 * 1024 * 1024;
 
 struct InterpretCtx {
     memory: Vec<u8>,
     registers: [u64; 16],
     flag: bool,
-    stmts: Vec<Stmt>,
-    spans: Vec<Span>,
     ip: usize,
 }
 
 impl InterpretCtx {
-    fn interpret(&mut self) -> Result<()> {
+    fn interpret(&mut self, stmts: Vec<Stmt>) -> Result<()> {
         let stmt_i = self.ip;
-        while stmt_i < self.stmts.len() {
+        while stmt_i < stmts.len() {
             self.ip += 1;
-            self.interpret_stmt(stmt_i)?
+            self.interpret_stmt(stmt_i, &stmts)?
         }
         Ok(())
     }
 
-    fn interpret_stmt(&mut self, stmt_i: usize) -> Result<()> {
-        let stmt = &self.stmts[stmt_i];
+    fn interpret_stmt(&mut self, stmt_i: usize, stmts: &[Stmt]) -> Result<()> {
+        let stmt = &stmts[stmt_i];
         match stmt {
             Stmt::Mov { from, to } => {
                 let value = self.read_value(from);
@@ -74,6 +72,9 @@ impl InterpretCtx {
                 let new = old.wrapping_div(value);
                 self.write_place(to, new);
             }
+            Stmt::Int { number } => {
+                self.interrupt(*number);
+            }
             Stmt::Jmp { to } => {
                 let index = to.index;
                 self.ip = index;
@@ -91,6 +92,14 @@ impl InterpretCtx {
             }
         }
         Ok(())
+    }
+
+    fn interrupt(&mut self, number: u64) {
+        match number {
+            0 => todo!("exit"),
+            1 => todo!("print"),
+            _ => panic!("invalid interrupt!"),
+        }
     }
 
     fn read_value(&self, value: &Value) -> u64 {
@@ -153,16 +162,13 @@ impl InterpretCtx {
     }
 }
 
-
-pub fn interpret(stmts: Vec<Stmt>, spans: Vec<Span>) -> Result<()> {
+pub fn interpret(stmts: Vec<Stmt>, _spans: Vec<Span>) -> Result<()> {
     let mut ctx = InterpretCtx {
         memory: vec![0; MEMORY_SIZE],
         registers: [0; 16],
         flag: false,
-        stmts,
-        spans,
         ip: 0,
     };
 
-    ctx.interpret()
+    ctx.interpret(stmts)
 }

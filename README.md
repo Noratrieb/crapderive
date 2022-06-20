@@ -88,6 +88,14 @@ The result is stored in the `place` `A`.
 Div divides the `place` `A` by the `value` `B`.
 The result is stored in the `place` `A`.
 
+### Int
+
+`int N`
+
+Int performs the interrupt with the number `N`. `N` must be a number literal.
+
+For a list of interrupts, see the list below.
+
 ### Cmp
 
 `cmp A, B`
@@ -113,3 +121,15 @@ the next instruction executed will be the instruction located at `L`.
 
 A label is an identifier (regex: `[a-zA-Z]\w+`) followed by a colon (`:`). Jumps (like `jmp` or `je`) will be able
 to jump to this label. A label is applied to the *next* instruction in the code.
+
+## Interrupts
+
+### `int 0`
+
+The interrupt 0 exits the program. The exit code is passed in `r0`.
+
+### `int 1`
+
+The interrupt 0 writes a string to standard output. `r0` contains the address of the string data.
+`r1` contains the length of the string. The string is encoded as `UTF-8`. After the interrupt completed,
+`r0` will contain a 0 if writing was successful, or a `1` if it failed.

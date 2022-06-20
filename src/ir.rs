@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-use std::mem;
+use std::{collections::HashMap, mem};
 
 use dbg_pls::DebugPls;
 use logos::Span;
@@ -40,6 +39,7 @@ pub enum Stmt {
     Sub { to: Place, value: Value },
     Mul { to: Place, value: Value },
     Div { to: Place, value: Value },
+    Int { number: u64 },
     Jmp { to: Location },
     Je { to: Location },
     Cmp { lhs: Value, rhs: Value },
@@ -95,6 +95,12 @@ impl CompileCtx {
                 let value = self.compile_value(value)?;
                 Stmt::Div { to, value }
             }
+            StmtKind::Int { number } => {
+                if number > 1 {
+                    return Err(CompilerError::simple("invalid interrupt".to_string(), p_stmt.span));
+                }
+                Stmt::Int { number }
+            },
             StmtKind::Jmp { to } => {
                 let to = self.compile_location(to, self.stmts.len())?;
                 Stmt::Jmp { to }
@@ -194,7 +200,7 @@ impl CompileCtx {
         Ok(())
     }
 
-    fn resolve_location(&mut self, index: usize, label: &str) -> Result<()>{
+    fn resolve_location(&mut self, index: usize, label: &str) -> Result<()> {
         let (location, _) = self.labels.get(label).ok_or_else(|| {
             CompilerError::simple(
                 format!("label {label} not found"),

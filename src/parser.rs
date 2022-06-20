@@ -23,6 +23,8 @@ pub enum Token<'a> {
     Mul,
     #[token("div")]
     Div,
+    #[token("int")]
+    Int,
     #[token("[")]
     BracketOpen,
     #[token("]")]
@@ -65,6 +67,7 @@ pub enum StmtKind {
     Sub { to: Expr, value: Expr },
     Mul { to: Expr, value: Expr },
     Div { to: Expr, value: Expr },
+    Int { number: u64 },
     Jmp { to: Expr },
     Je { to: Expr },
     Cmp { lhs: Expr, rhs: Expr },
@@ -195,6 +198,17 @@ where
                 let value = self.expr()?;
                 stmt(span.start..value.span.end, StmtKind::Div { to, value })
             }
+            Token::Int => {
+                let (next, next_span) = self.next()?;
+                if let Token::Number(number) = next {
+                    stmt(span.start..next_span.end, StmtKind::Int { number })
+                } else {
+                    return Err(CompilerError::simple(
+                        format!("Expected number, found {:?}", next,),
+                        next_span,
+                    ));
+                }
+            }
             Token::Label(name) => {
                 let name = name
                     .strip_suffix(":")
@@ -253,6 +267,7 @@ where
             Token::Sub => return Err(CompilerError::not_allowed(span, "sub")),
             Token::Mul => return Err(CompilerError::not_allowed(span, "mul")),
             Token::Div => return Err(CompilerError::not_allowed(span, "div")),
+            Token::Int => return Err(CompilerError::not_allowed(span, "int")),
             Token::BracketClose => return Err(CompilerError::not_allowed(span, "]")),
             Token::Comma => return Err(CompilerError::not_allowed(span, ",")),
             Token::Label(_) => return Err(CompilerError::not_allowed(span, "{label}")),
