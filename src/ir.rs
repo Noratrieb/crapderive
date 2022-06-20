@@ -47,7 +47,7 @@ pub enum Stmt {
 struct CompileCtx {
     stmts: Vec<Stmt>,
     spans: Vec<Span>,
-    labels: HashMap<String, usize>,
+    labels: HashMap<String, (Location, Span)>,
 }
 
 impl CompileCtx {
@@ -59,48 +59,55 @@ impl CompileCtx {
     }
 
     fn compile_stmt(&mut self, p_stmt: parser::Stmt) -> Result<()> {
-        match p_stmt.kind {
+        let stmt = match p_stmt.kind {
             StmtKind::Mov { from, to } => {
                 let from = self.compile_value(from)?;
                 let to = self.compile_place(to)?;
-                let stmt = Stmt::Mov { from, to };
-                self.stmts.push(stmt);
+                Stmt::Mov { from, to }
             }
             StmtKind::Add { to, value } => {
                 let to = self.compile_place(to)?;
                 let value = self.compile_value(value)?;
-                let stmt = Stmt::Add { to, value };
-                self.stmts.push(stmt);
+                Stmt::Add { to, value }
             }
             StmtKind::Sub { to, value } => {
                 let to = self.compile_place(to)?;
                 let value = self.compile_value(value)?;
-                let stmt = Stmt::Sub { to, value };
-                self.stmts.push(stmt);
+                Stmt::Sub { to, value }
             }
             StmtKind::Mul { to, value } => {
                 let to = self.compile_place(to)?;
                 let value = self.compile_value(value)?;
-                let stmt = Stmt::Mul { to, value };
-                self.stmts.push(stmt);
+                Stmt::Mul { to, value }
             }
             StmtKind::Div { to, value } => {
                 let to = self.compile_place(to)?;
                 let value = self.compile_value(value)?;
-                let stmt = Stmt::Div { to, value };
-                self.stmts.push(stmt);
+                Stmt::Div { to, value }
             }
-            StmtKind::Jmp { .. } => todo!("jmp"),
-            StmtKind::Je { .. } => todo!("je"),
+            StmtKind::Jmp { to } => {
+                let to = self.compile_location(to)?;
+                Stmt::Jmp { to }
+            }
+            StmtKind::Je { to } => {
+                let to = self.compile_location(to)?;
+                Stmt::Je { to }
+            }
             StmtKind::Cmp { lhs, rhs } => {
                 let lhs = self.compile_value(lhs)?;
                 let rhs = self.compile_value(rhs)?;
-                let stmt = Stmt::Cmp { lhs, rhs };
-                self.stmts.push(stmt);
+                Stmt::Cmp { lhs, rhs }
             }
-            StmtKind::Label { .. } => {}
-        }
+            StmtKind::Label { name } => {
+                self.compile_label(name, p_stmt.span)?;
+                // no statement to emit here
+                return Ok(());
+            }
+        };
+
+        self.stmts.push(stmt);
         self.spans.push(p_stmt.span);
+
         Ok(())
     }
 
@@ -134,6 +141,46 @@ impl CompileCtx {
             ExprKind::Symbol(_) => todo!("compile to Literal"),
             _ => Ok(Value::Place(self.compile_place(expr)?)),
         }
+    }
+
+    fn get_label_position(&self, label: &str, span: Span) -> Result<Location> {
+        let location = self.labels.get(label);
+        location
+            .map(|(location,_)|  *location)
+            .ok_or_else(|| CompilerError::simple(format!("label `{label}` not found"), span))
+    }
+
+    fn compile_location(&mut self, expr: parser::Expr) -> Result<Location> {
+        match expr.kind {
+            ExprKind::Symbol(sym) => Ok(self.get_label_position(&sym, expr.span)?),
+            ExprKind::Register(_) => Err(CompilerError::simple(
+                "cannot jump to a register".to_string(),
+                expr.span,
+            )),
+            ExprKind::Number(_) => Err(CompilerError::simple(
+                "cannot jump to a number literal".to_string(),
+                expr.span,
+            )),
+            ExprKind::Addr(_) => Err(CompilerError::simple(
+                "cannot jump to a dereferenced address".to_string(),
+                expr.span,
+            )),
+        }
+    }
+
+    fn compile_label(&mut self, label: String, span: Span) -> Result<()> {
+        let index = self.stmts.len();
+        let old = self
+            .labels
+            .insert(label, (Location { index }, span.clone()));
+        if let Some((_, old_span)) = old {
+            return Err(CompilerError::new_notes(
+                "duplicate label found".to_string(),
+                span,
+                vec![("previous label defined here".to_string(), old_span)],
+            ));
+        }
+        Ok(())
     }
 }
 
