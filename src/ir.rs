@@ -35,6 +35,7 @@ pub struct Location {
 #[derive(Debug, Clone, Copy, DebugPls)]
 pub enum Stmt {
     Mov { to: Place, from: Value },
+    Movb { to: Place, from: Value },
     Add { to: Place, value: Value },
     Sub { to: Place, value: Value },
     Mul { to: Place, value: Value },
@@ -75,6 +76,11 @@ impl CompileCtx {
                 let to = self.compile_place(to)?;
                 Stmt::Mov { from, to }
             }
+            StmtKind::Movb { from, to } => {
+                let from = self.compile_value(from)?;
+                let to = self.compile_place(to)?;
+                Stmt::Movb { from, to }
+            }
             StmtKind::Add { to, value } => {
                 let to = self.compile_place(to)?;
                 let value = self.compile_value(value)?;
@@ -97,10 +103,13 @@ impl CompileCtx {
             }
             StmtKind::Int { number } => {
                 if number > 1 {
-                    return Err(CompilerError::simple("invalid interrupt".to_string(), p_stmt.span));
+                    return Err(CompilerError::simple(
+                        "invalid interrupt".to_string(),
+                        p_stmt.span,
+                    ));
                 }
                 Stmt::Int { number }
-            },
+            }
             StmtKind::Jmp { to } => {
                 let to = self.compile_location(to, self.stmts.len())?;
                 Stmt::Jmp { to }

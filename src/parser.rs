@@ -9,6 +9,8 @@ use crate::error::{CompilerError, Result};
 pub enum Token<'a> {
     #[token("mov")]
     Mov,
+    #[token("movb")]
+    Movb,
     #[token("jmp")]
     Jmp,
     #[token("je")]
@@ -63,6 +65,7 @@ impl DebugPls for Stmt {
 #[derive(Debug, PartialEq, Eq, DebugPls)]
 pub enum StmtKind {
     Mov { to: Expr, from: Expr },
+    Movb { to: Expr, from: Expr },
     Add { to: Expr, value: Expr },
     Sub { to: Expr, value: Expr },
     Mul { to: Expr, value: Expr },
@@ -159,6 +162,12 @@ where
                 expect!(self, Token::Comma);
                 let from = self.expr()?;
                 stmt(span.start..from.span.end, StmtKind::Mov { to, from })
+            }
+            Token::Movb => {
+                let to = self.expr()?;
+                expect!(self, Token::Comma);
+                let from = self.expr()?;
+                stmt(span.start..from.span.end, StmtKind::Movb { to, from })
             }
             Token::Jmp => {
                 let to = self.expr()?;
@@ -260,6 +269,7 @@ where
                 expr(ExprKind::Symbol(name.to_owned()), span)
             }
             Token::Mov => return Err(CompilerError::not_allowed(span, "mov")),
+            Token::Movb => return Err(CompilerError::not_allowed(span, "movb")),
             Token::Jmp => return Err(CompilerError::not_allowed(span, "jmp")),
             Token::Je => return Err(CompilerError::not_allowed(span, "je")),
             Token::Cmp => return Err(CompilerError::not_allowed(span, "cmp")),

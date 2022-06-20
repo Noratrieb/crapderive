@@ -60,6 +60,12 @@ A location is a location in the VM code. It must contain a symbol with the label
 
 Mov moves the `value` `B` to the `place` `A`.
 
+### Movb
+
+`movb A, B`
+
+Mov moves the `value` `B` to the `place` `A`. Only a single byte is written.
+
 ### Add
 
 `add A, B`
@@ -131,5 +137,5 @@ The interrupt 0 exits the program. The exit code is passed in `r0`.
 ### `int 1`
 
 The interrupt 0 writes a string to standard output. `r0` contains the address of the string data.
-`r1` contains the length of the string. The string is encoded as `UTF-8`. After the interrupt completed,
-`r0` will contain a 0 if writing was successful, or a `1` if it failed.
+`r1` contains the length of the string. The string is forwarded as raw bytes to the OS.
+After the interrupt completed, `r0` will contain a 0 if writing was successful, or a `1` if it failed.

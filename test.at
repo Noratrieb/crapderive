@@ -1,14 +1,7 @@
-mov r0, 3
-cmp r0, 8
-je true
-jmp false
-true:
-jmp exit
-
-// loop
-false:
-mov r5, [8]
-jmp false
-
-
-exit:
+mov [0], 40
+mov [1], 41
+mov [2], 42
+mov [3], 43
+mov r0, 0
+mov r1, 4
+int 1

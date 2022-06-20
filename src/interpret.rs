@@ -9,6 +9,8 @@
 //! Decimal 1
 //! ```
 
+use std::io::Write;
+
 use logos::Span;
 
 use crate::{
@@ -33,8 +35,8 @@ struct InterpretCtx {
 
 impl InterpretCtx {
     fn interpret(&mut self, stmts: Vec<Stmt>) -> Result<()> {
-        let stmt_i = self.ip;
-        while stmt_i < stmts.len() {
+        while self.ip < stmts.len() {
+            let stmt_i = self.ip;
             self.ip += 1;
             self.interpret_stmt(stmt_i, &stmts)?
         }
@@ -47,6 +49,10 @@ impl InterpretCtx {
             Stmt::Mov { from, to } => {
                 let value = self.read_value(from);
                 self.write_place(to, value);
+            }
+            Stmt::Movb { from, to } => {
+                let value = self.read_byte_value(from);
+                self.write_byte_place(to, value);
             }
             Stmt::Add { to, value } => {
                 let old = self.read_place(to);
@@ -96,8 +102,17 @@ impl InterpretCtx {
 
     fn interrupt(&mut self, number: u64) {
         match number {
-            0 => todo!("exit"),
-            1 => todo!("print"),
+            0 => {
+                let code = self.reg(Register(0));
+                std::process::exit(code as i32);
+            }
+            1 => {
+                let str_addr = self.reg_addr(Register(0));
+                let str_len = self.reg_addr(Register(1));
+                let slice = &self.memory[str_addr..][..str_len];
+                let is_ok = std::io::stdout().lock().write_all(slice).is_ok();
+                *self.reg_mut(Register(0)) = if is_ok { 0 } else { 1 };
+            }
             _ => panic!("invalid interrupt!"),
         }
     }
@@ -109,11 +124,18 @@ impl InterpretCtx {
         }
     }
 
+    fn read_byte_value(&self, value: &Value) -> u8 {
+        match value {
+            Value::Literal(n) => *n as u8,
+            Value::Place(place) => self.read_byte_place(place),
+        }
+    }
+
     fn read_place(&self, place: &Place) -> u64 {
         match place {
-            Place::Register(reg) => self.registers[reg.as_index()],
+            Place::Register(reg) => self.reg(*reg),
             Place::AddrRegister(reg) => {
-                let addr = self.registers[reg.as_index()] as usize;
+                let addr = self.reg_addr(*reg);
                 self.read_addr(addr)
             }
             Place::AddrLiteral(addr) => {
@@ -123,19 +145,48 @@ impl InterpretCtx {
         }
     }
 
+    fn read_byte_place(&self, place: &Place) -> u8 {
+        match place {
+            Place::Register(reg) => self.reg(*reg) as u8,
+            Place::AddrRegister(reg) => {
+                let addr = self.reg_addr(*reg);
+                self.memory[addr]
+            }
+            Place::AddrLiteral(addr) => {
+                let addr = *addr as usize;
+                self.memory[addr]
+            }
+        }
+    }
+
     fn write_place(&mut self, place: &Place, value: u64) {
         match place {
             Place::Register(reg) => {
-                let r = &mut self.registers[reg.as_index()];
-                *r = value;
+                *self.reg_mut(*reg) = value;
             }
             Place::AddrRegister(reg) => {
-                let addr = self.registers[reg.as_index()] as usize;
+                let addr = self.reg_addr(*reg);
                 self.write_addr(addr, value);
             }
             Place::AddrLiteral(addr) => {
                 let addr = *addr as usize;
                 self.write_addr(addr, value);
+            }
+        }
+    }
+
+    fn write_byte_place(&mut self, place: &Place, value: u8) {
+        match place {
+            Place::Register(reg) => {
+                *self.reg_mut(*reg) = value.into();
+            }
+            Place::AddrRegister(reg) => {
+                let addr = self.reg_addr(*reg);
+                self.memory[addr] = value;
+            }
+            Place::AddrLiteral(addr) => {
+                let addr = *addr as usize;
+                self.memory[addr] = value;
             }
         }
     }
@@ -159,6 +210,18 @@ impl InterpretCtx {
         for i in 0..8 {
             self.memory[addr + i] = bytes[i];
         }
+    }
+
+    fn reg(&self, reg: Register) -> u64 {
+        self.registers[reg.as_index()]
+    }
+
+    fn reg_mut(&mut self, reg: Register) -> &mut u64 {
+        &mut self.registers[reg.as_index()]
+    }
+
+    fn reg_addr(&self, reg: Register) -> usize {
+        self.reg(reg) as usize
     }
 }
 
