@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::mem;
 
 use dbg_pls::DebugPls;
 use logos::Span;
@@ -48,6 +49,9 @@ struct CompileCtx {
     stmts: Vec<Stmt>,
     spans: Vec<Span>,
     labels: HashMap<String, (Location, Span)>,
+    /// a vector of index and label name into `stmts` that contain references to labels that may
+    /// be declared after them
+    location_to_resolve: Vec<(usize, String)>,
 }
 
 impl CompileCtx {
@@ -55,6 +59,12 @@ impl CompileCtx {
         for stmt in ast {
             self.compile_stmt(stmt)?;
         }
+
+        let locations = mem::take(&mut self.location_to_resolve);
+        for (index, label) in locations {
+            self.resolve_location(index, &label)?;
+        }
+
         Ok(())
     }
 
@@ -86,11 +96,11 @@ impl CompileCtx {
                 Stmt::Div { to, value }
             }
             StmtKind::Jmp { to } => {
-                let to = self.compile_location(to)?;
+                let to = self.compile_location(to, self.stmts.len())?;
                 Stmt::Jmp { to }
             }
             StmtKind::Je { to } => {
-                let to = self.compile_location(to)?;
+                let to = self.compile_location(to, self.stmts.len())?;
                 Stmt::Je { to }
             }
             StmtKind::Cmp { lhs, rhs } => {
@@ -143,16 +153,17 @@ impl CompileCtx {
         }
     }
 
-    fn get_label_position(&self, label: &str, span: Span) -> Result<Location> {
-        let location = self.labels.get(label);
-        location
-            .map(|(location,_)|  *location)
-            .ok_or_else(|| CompilerError::simple(format!("label `{label}` not found"), span))
+    fn get_label_position(&mut self, label: String, index: usize) -> Location {
+        let location = self.labels.get(&label);
+        location.map(|(location, _)| *location).unwrap_or_else(|| {
+            self.location_to_resolve.push((index, label));
+            Location { index: usize::MAX }
+        })
     }
 
-    fn compile_location(&mut self, expr: parser::Expr) -> Result<Location> {
+    fn compile_location(&mut self, expr: parser::Expr, index: usize) -> Result<Location> {
         match expr.kind {
-            ExprKind::Symbol(sym) => Ok(self.get_label_position(&sym, expr.span)?),
+            ExprKind::Symbol(sym) => Ok(self.get_label_position(sym, index)),
             ExprKind::Register(_) => Err(CompilerError::simple(
                 "cannot jump to a register".to_string(),
                 expr.span,
@@ -182,6 +193,23 @@ impl CompileCtx {
         }
         Ok(())
     }
+
+    fn resolve_location(&mut self, index: usize, label: &str) -> Result<()>{
+        let (location, _) = self.labels.get(label).ok_or_else(|| {
+            CompilerError::simple(
+                format!("label {label} not found"),
+                self.spans[index].clone(),
+            )
+        })?;
+
+        let instr = &mut self.stmts[index];
+        match instr {
+            Stmt::Je { to } => *to = *location,
+            Stmt::Jmp { to } => *to = *location,
+            _ => unreachable!(),
+        }
+        Ok(())
+    }
 }
 
 pub fn compile(ast: impl Iterator<Item = parser::Stmt>) -> Result<(Vec<Stmt>, Vec<Span>)> {
@@ -189,6 +217,7 @@ pub fn compile(ast: impl Iterator<Item = parser::Stmt>) -> Result<(Vec<Stmt>, Ve
         stmts: Vec::new(),
         spans: Vec::new(),
         labels: HashMap::new(),
+        location_to_resolve: Vec::new(),
     };
     ctx.compile(ast)?;
     Ok((ctx.stmts, ctx.spans))
