@@ -9,7 +9,7 @@
 //! Decimal 1
 //! ```
 
-use std::io::Write;
+use std::io::{Read, Write};
 
 use logos::Span;
 
@@ -111,6 +111,13 @@ impl InterpretCtx {
                 let str_len = self.reg_addr(Register(1));
                 let slice = &self.memory[str_addr..][..str_len];
                 let is_ok = std::io::stdout().lock().write_all(slice).is_ok();
+                *self.reg_mut(Register(0)) = if is_ok { 0 } else { 1 };
+            }
+            2 => {
+                let buffer_addr = self.reg_addr(Register(0));
+                let buffer_len = self.reg_addr(Register(1));
+                let slice = &mut self.memory[buffer_addr..][..buffer_len];
+                let is_ok = std::io::stdin().read_exact(slice).is_ok();
                 *self.reg_mut(Register(0)) = if is_ok { 0 } else { 1 };
             }
             _ => panic!("invalid interrupt!"),

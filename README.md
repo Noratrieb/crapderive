@@ -138,6 +138,12 @@ The interrupt 0 exits the program. The exit code is passed in `r0`.
 
 ### `int 1`
 
-The interrupt 0 writes a string to standard output. `r0` contains the address of the string data.
+The interrupt 1 writes a string to standard output. `r0` contains the address of the string data.
 `r1` contains the length of the string. The string is forwarded as raw bytes to the OS.
-After the interrupt completed, `r0` will contain a 0 if writing was successful, or a `1` if it failed.
+After the interrupt completed, `r0` will contain a `0` if writing was successful, or a `1` if it failed.
+
+### `int 2`
+
+The interrupt 2 reads in a UTF-8 string from stdin. `r0` contains the address of the buffer for the data.
+`r1` contains the length of the buffer. The interrupt returns after the buffer has been filled. If reading fails,
+`1` will be put into `r0`, if it was successful, `0`.

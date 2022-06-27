@@ -5,7 +5,7 @@
 |===
 |Constraint|Reason
 |Interpreter|Because the time for implementation is limited, the simpler option of an interpreter has to be chosen over a compiler.
-|4 weeks limited time|The time of the assignment
+|4 weeks limited time|The time of the assignment.
 |===
 
 == Conventions
