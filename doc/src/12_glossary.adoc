@@ -7,9 +7,30 @@
 |===
 |Term |Definition
 
-|<Term-1>
-|<definition-1>
+|Source code
+|A UTF-8 encoded string containing the program.
 
-|<Term-2>
-|<definition-2>
+|Abstract Syntax Tree (AST)
+|A tree-shaped structure that represents the source code of the programming language
+
+|Token
+|A single element of the source code, for example a number, punctuation or an identifier.
+
+|Lexer
+|Tokenizes source code into a stream of tokens.
+
+|Parser
+|Turns a stream of tokens into an AST.
+
+|Span
+|Marks the location in the source code where the element containing the span originated from.
+
+|Intermediate representation (IR)
+|An abstract representation of the source code that lives on some level between the source code and target.
+
+|Crate
+|The unit of compilation in Rust, often used to refer to a library.
+
+|Compiler Diagnostic
+|Compiler error.
 |===

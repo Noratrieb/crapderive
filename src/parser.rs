@@ -294,7 +294,9 @@ where
     }
 }
 
+// tag::parse[]
 pub fn parse(src: &str) -> Result<Vec<Stmt>> {
+    // end::parse[]
     let lexer = lex(src).spanned();
     let mut parser = Parser {
         iter: lexer.peekable(),

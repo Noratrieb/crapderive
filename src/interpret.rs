@@ -232,7 +232,9 @@ impl InterpretCtx {
     }
 }
 
-pub fn interpret(stmts: Vec<Stmt>, _spans: Vec<Span>) -> Result<()> {
+// tag::interpret[]
+pub fn interpret(stmts: Vec<Stmt>) -> Result<()> {
+    // end::interpret[]
     let mut ctx = InterpretCtx {
         memory: vec![0; MEMORY_SIZE],
         registers: [0; 16],

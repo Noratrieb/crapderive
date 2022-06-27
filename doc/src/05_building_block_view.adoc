@@ -1,3 +1,5 @@
+:sourcedir: ../../src
+
 [[section-building-block-view]]
 
 
@@ -5,41 +7,29 @@
 
 [plantuml]
 ----
-() IO -> [Lexer]
-[Lexer] -> [Parser]
-[Parser] -> [Compiler]
-[Compiler] --> [Interpreter]
-[Interpreter] -> () IO
-() IO --> [Interpreter]
+() IO <- [Main] : read input file
+[Main] <-> [Parser] : lex and parse code
+[Main] <--> [IR] : compile
+[Main] <--> [Interpreter] : interpret code
+[Interpreter] <--> () IO : stdin and stdout
 ----
-
-=== Whitebox Overall System
-
-
-
-_**<Overview Diagram>**_
 
 Motivation::
 
-_<text explanation>_
+The interpreter follows a classic interpreter architecture. First, the source is tokenized by a lexer, implemented using the `logos` library (https://crates.io/crates/logos).
 
+The, a handwritten recursive descent parser parses the token stream. The abstract syntax tree is then given to a small compiler, that compiles it down to a smaller and more limited IR. It also resolves jump labels to offsets.
 
-Contained Building Blocks::
-_<Description of contained building block (black boxes)>_
+The interpreter then executes this lower level IR.
 
-Important Interfaces::
-_<Description of important interfaces>_
+==== Parser
 
+Lexes the source code, and then turns those tokens into an abstract syntax tree.
 
-
-
-==== <Name black box 1>
-
-
-
-_<Purpose/Responsibility>_
-
-_<Interface(s)>_
+[source,rust]
+----
+include::{sourcedir}/parser.rs[tag=parse]
+----
 
 _<(Optional) Quality/Performance Characteristics>_
 

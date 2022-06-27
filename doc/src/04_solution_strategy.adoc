@@ -5,7 +5,7 @@
 |===
 |Quality Goal|Approaches
 |Ease of implementation| Simple language with not too many features. Many features out of scope, like static data.
-|Interpreter UX|Keeping track of source locations throughout the compilation/interpretation process, usage of the library `ariadne` (https://crates.io/crates/ariadne) for displaying diagnostics.
+|Interpreter UX|Keeping track of source locations throughout the compilation/interpretation process, usage of the crate `ariadne` (https://crates.io/crates/ariadne) for displaying diagnostics.
 |Performance|Written in the native compiled language. Internally, the AST is compiled into a lower level IR, where jump labels are resolved to instruction offsets.
 |===
 

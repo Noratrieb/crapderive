@@ -16,7 +16,7 @@ fn main() -> Result<(), io::Error> {
     let stmts = ir::compile(ast.into_iter()).unwrap_or_else(|e| report_and_exit(&file, e));
     dbg_pls::color!(&stmts.0);
 
-    interpret::interpret(stmts.0, stmts.1).unwrap_or_else(|e| report_and_exit(&file, e));
+    interpret::interpret(stmts.0).unwrap_or_else(|e| report_and_exit(&file, e));
 
     Ok(())
 }
