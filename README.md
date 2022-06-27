@@ -1,5 +1,7 @@
 # crap-derive
 
+for a school assignment thing
+
 ```asm
 mov r0, 3
 cmp r0, 8
