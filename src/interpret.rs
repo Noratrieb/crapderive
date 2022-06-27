@@ -120,7 +120,7 @@ impl InterpretCtx {
                 let is_ok = std::io::stdin().read_exact(slice).is_ok();
                 *self.reg_mut(Register(0)) = if is_ok { 0 } else { 1 };
             }
-            _ => panic!("invalid interrupt!"),
+            _ => unreachable!("checked in compiler"),
         }
     }
 

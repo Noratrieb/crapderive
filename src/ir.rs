@@ -102,7 +102,7 @@ impl CompileCtx {
                 Stmt::Div { to, value }
             }
             StmtKind::Int { number } => {
-                if number > 1 {
+                if number > 2 {
                     return Err(CompilerError::simple(
                         "invalid interrupt".to_string(),
                         p_stmt.span,
@@ -155,7 +155,10 @@ impl CompileCtx {
                     nested.span,
                     "save the first result in a temporary register".to_string(),
                 )),
-                ExprKind::Symbol(_) => todo!("compile to AddrLiteral"),
+                ExprKind::Symbol(_) => return Err(CompilerError::simple(
+                    "symbol not allowed here".to_owned(),
+                    expr.span,
+                ))
             },
         }
     }
@@ -163,7 +166,12 @@ impl CompileCtx {
     fn compile_value(&mut self, expr: parser::Expr) -> Result<Value> {
         match expr.kind {
             ExprKind::Number(n) => Ok(Value::Literal(n)),
-            ExprKind::Symbol(_) => todo!("compile to Literal"),
+            ExprKind::Symbol(_) => {
+                return Err(CompilerError::simple(
+                    "symbol not allowed here".to_owned(),
+                    expr.span,
+                ))
+            }
             _ => Ok(Value::Place(self.compile_place(expr)?)),
         }
     }
