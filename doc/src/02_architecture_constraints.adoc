@@ -1,5 +1,21 @@
 [[section-architecture-constraints]]
 == Architecture Constraints
 
+[options="header",cols="1,2"]
+|===
+|Constraint|Reason
+|Interpreter|Because the time for implementation is limited, the simpler option of an interpreter has to be chosen over a compiler.
+|4 weeks limited time|The time of the assignment
+|===
 
+== Conventions
 
+[options="header",cols="1,2"]
+|===
+|Type|Convention
+|Naming|Standard Rust naming according to the official API Guidelines: https://rust-lang.github.io/api-guidelines/naming.html
+|Formatting|Default `rustfmt` configuration with `imports_granularity = "Crate"` and `group_imports = "StdExternalCrate"`.
+|Linting|The default `clippy` rules.
+|General|https://rust-lang.github.io/api-guidelines/about.html
+|Build System/Package Manager|`cargo`
+|===

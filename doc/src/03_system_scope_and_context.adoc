@@ -3,16 +3,6 @@
 
 
 
-
-
-=== Business Context
-
-
-
-**<Diagram or Table>**
-
-**<optionally: Explanation of external domain interfaces>**
-
 === Technical Context
 
 

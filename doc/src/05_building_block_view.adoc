@@ -3,7 +3,15 @@
 
 == Building Block View
 
-
+[plantuml]
+----
+() IO -> [Lexer]
+[Lexer] -> [Parser]
+[Parser] -> [Compiler]
+[Compiler] --> [Interpreter]
+[Interpreter] -> () IO
+() IO --> [Interpreter]
+----
 
 === Whitebox Overall System
 

@@ -1,22 +1,27 @@
 [[section-introduction-and-goals]]
 == Introduction and Goals
 
-
-
 === Requirements Overview
+
+==== What is Crapderive?
+
+Crapderive is a small assembly-like programming language. It's implemented as a Rust interpreter.
 
 
 === Quality Goals
 
+* Ease of implementation: It must not be too complex to implement Crapderive, while still being interesting. A simpler language makes for a simpler implementation, which is easier to document.
+* Interpreter UX: The interpreter must be easy to use, and should give clear error messages.
+* Performance: While performance isn't a strict requirement, the interpreter should be decently fast.
 
 
 === Stakeholders
 
 
-
-[options="header",cols="1,2,2"]
+[options="header",cols="1,2"]
 |===
-|Role/Name|Contact|Expectations
-| _<Role-1>_ | _<Contact-1>_ | _<Expectation-1>_
-| _<Role-2>_ | _<Contact-2>_ | _<Expectation-2>_
+|Role/Name|Expectations
+| Teacher | An interesting programming language with good documentation.
+| Other students | An interesting programming language they can try out and have fun with.
+| Author | Get a good mark with it.
 |===
