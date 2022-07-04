@@ -1,14 +1,9 @@
 [[section-system-scope-and-context]]
 == System Scope and Context
 
+[plantuml]
+----
+(crapderive) --- User : Terminal
+----
 
-
-=== Technical Context
-
-
-
-**<Diagram or Table>**
-
-**<optionally: Explanation of technical interfaces>**
-
-**<Mapping Input/Output to Channels>**
+The user interacts with crapderive via a terminal and standard input and output.

@@ -4,6 +4,7 @@
 * Parser tests
 * Idiomatic Rust code
 * Good diagnostics
+* Performance
 
 === Quality Tree
 
@@ -16,6 +17,7 @@ left to right direction
 
 (Quality) --> (usability)
 (usability) --> (3 diagnostics)
+(usability) --> (4 performance)
 ----
 
 === Quality Scenarios
@@ -26,4 +28,5 @@ left to right direction
 |1|A developer wants to add a new feature to the parser. It should be ensured that they don't break existing functionality.
 |2|A new developer that is already familiar with rust wants to get started contributing to the project. The project should be familiar to them.
 |3|Someone wants to use crapderive, but they have syntax errors since they aren't familiar with the language yet. The compiler should help them find the issues and fix them.
+|4|A user wants to rewrite their slow bash script in a faster language. Crapderive should give them this capability.
 |===

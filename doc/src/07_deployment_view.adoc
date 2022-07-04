@@ -8,5 +8,11 @@ The code is available on GitHub (https://github.com/Nilstrieb/crapderive). The u
 To build and install crapderive, they can run the following command if they have Rust installed:
 `cargo install --git https://github.com/Nilstrieb/crapderive`.
 
+[plantuml]
+----
+(Github) -- User1 : cargo install
+(Github) -- User2 : git clone
+----
+
 === Installing Rust
 To install Rust, visit https://www.rust-lang.org/tools/install.
