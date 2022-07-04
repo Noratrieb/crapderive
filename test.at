@@ -1,7 +1,6 @@
-mov [0], 40
-mov [1], 41
-mov [2], 42
-mov [3], 43
+movb [0], 65
+movb [1], 66
+movb [2], 67
 mov r0, 0
-mov r1, 4
+mov r1, 3
 int 1

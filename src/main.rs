@@ -12,9 +12,9 @@ fn main() -> Result<(), io::Error> {
     let result = parser::parse(&file);
 
     let ast = result.unwrap_or_else(|e| report_and_exit(&file, e));
-    dbg_pls::color!(&ast);
+    // dbg_pls::color!(&ast);
     let stmts = ir::compile(ast.into_iter()).unwrap_or_else(|e| report_and_exit(&file, e));
-    dbg_pls::color!(&stmts.0);
+    // dbg_pls::color!(&stmts.0);
 
     interpret::interpret(stmts.0).unwrap_or_else(|e| report_and_exit(&file, e));
 
