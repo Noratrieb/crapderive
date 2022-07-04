@@ -5,21 +5,6 @@
 
 == Building Block View
 
-[plantuml]
-----
-() IO <- [Main] : read input file
-[Main] <-> [Parser] : lex and parse code
-[Main] <--> [IR] : compile
-[Main] <--> [Interpreter] : interpret code
-[Interpreter] <--> () IO : stdin and stdout
-----
-
-The interpreter follows a classic interpreter architecture. First, the source is tokenized by a lexer, implemented using the `logos` library (https://crates.io/crates/logos).
-
-Then, a handwritten recursive descent parser parses the token stream. The abstract syntax tree is then given to a small compiler, that compiles it down to a smaller and more limited IR. It also resolves jump labels to offsets.
-
-The interpreter then executes this lower level IR.
-
 ==== Parser `parser.rs`
 
 Lexes the source code, and then parses those tokens into an abstract syntax tree.
