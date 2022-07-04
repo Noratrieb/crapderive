@@ -33,6 +33,7 @@ pub struct Location {
 }
 
 #[derive(Debug, Clone, Copy, DebugPls)]
+// tag::stmt[]
 pub enum Stmt {
     Mov { to: Place, from: Value },
     Movb { to: Place, from: Value },
@@ -45,6 +46,7 @@ pub enum Stmt {
     Je { to: Location },
     Cmp { lhs: Value, rhs: Value },
 }
+// end::stmt[]
 
 struct CompileCtx {
     stmts: Vec<Stmt>,

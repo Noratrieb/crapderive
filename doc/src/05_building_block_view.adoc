@@ -14,49 +14,34 @@
 [Interpreter] <--> () IO : stdin and stdout
 ----
 
-Motivation::
-
 The interpreter follows a classic interpreter architecture. First, the source is tokenized by a lexer, implemented using the `logos` library (https://crates.io/crates/logos).
 
-The, a handwritten recursive descent parser parses the token stream. The abstract syntax tree is then given to a small compiler, that compiles it down to a smaller and more limited IR. It also resolves jump labels to offsets.
+Then, a handwritten recursive descent parser parses the token stream. The abstract syntax tree is then given to a small compiler, that compiles it down to a smaller and more limited IR. It also resolves jump labels to offsets.
 
 The interpreter then executes this lower level IR.
 
-==== Parser
+==== Parser `parser.rs`
 
-Lexes the source code, and then turns those tokens into an abstract syntax tree.
+Lexes the source code, and then parses those tokens into an abstract syntax tree.
 
 [source,rust]
 ----
 include::{sourcedir}/parser.rs[tag=parse]
 ----
 
-_<(Optional) Quality/Performance Characteristics>_
 
-_<(Optional) Directory/File Location>_
+==== Compiler and IR `ir.rs`
 
-_<(Optional) Fulfilled Requirements>_
+[source,rust]
+----
+include::{sourcedir}/ir.rs[tag=stmt]
+----
 
-_<(optional) Open Issues/Problems/Risks>_
+The compiler compiles the AST into the IR, resolving labels.
 
+==== Interpreter `interpret.rs`
 
-
-
-==== <Name black box 2>
-
-_<black box template>_
-
-==== <Name black box n>
-
-_<black box template>_
-
-
-==== <Name interface 1>
-
-...
-
-==== <Name interface m>
-
+The interpreter interprets the IR and interacts with the outside world through standard input and output.
 
 
 === Level 2

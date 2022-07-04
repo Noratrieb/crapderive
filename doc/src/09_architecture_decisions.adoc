@@ -1,5 +1,18 @@
 [[section-design-decisions]]
 == Architecture Decisions
 
+=== Use a single binary crate
 
+Since the project is small and self-contained, using a single binary crate is enough. In the future, it could still be migrated to using a binary+library crate.
 
+=== Use an IR
+
+It would be simpler to simply walk over the AST during interpretation, but this presents several problems:
+
+* The AST is more permissive than the language, therefore it would have to be checked at runtime.
+
+* The AST is not optimized for interpretation efficiency, because it's not cache efficient.
+
+* There would still have to be a second pass over the AST to resolve labels.
+
+Therefore, an IR is used to resolve the labels and interpret it.
