@@ -63,6 +63,7 @@ impl DebugPls for Stmt {
 }
 
 #[derive(Debug, PartialEq, Eq, DebugPls)]
+// tag::stmt[]
 pub enum StmtKind {
     Mov { to: Expr, from: Expr },
     Movb { to: Expr, from: Expr },
@@ -76,6 +77,7 @@ pub enum StmtKind {
     Cmp { lhs: Expr, rhs: Expr },
     Label { name: String },
 }
+// end::stmt[]
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Expr {
@@ -145,7 +147,7 @@ where
 {
     fn program(&mut self) -> Result<Vec<Stmt>> {
         let mut stmts = Vec::new();
-        while let Ok(_) = self.peek() {
+        while self.peek().is_ok() {
             let stmt = self.stmt()?;
             stmts.push(stmt);
         }
@@ -220,7 +222,7 @@ where
             }
             Token::Label(name) => {
                 let name = name
-                    .strip_suffix(":")
+                    .strip_suffix(':')
                     .expect("lexer produced invalid label")
                     .to_owned();
                 stmt(span, StmtKind::Label { name })
@@ -232,7 +234,7 @@ where
             Token::Word(word) => {
                 return Err(CompilerError::new(
                     "{word}".to_string(),
-                    span.clone(),
+                    span,
                     vec![],
                     Some(format!("Consider using a label instead: `{}:`", word)),
                 ))
@@ -253,7 +255,7 @@ where
             }
             Token::Number(n) => expr(ExprKind::Number(n), span),
             Token::Word(name) => {
-                if let Some(r_number) = name.strip_prefix("r") {
+                if let Some(r_number) = name.strip_prefix('r') {
                     if let Ok(n) = r_number.parse::<u8>() {
                         if n > 15 {
                             return Err(CompilerError::new(
@@ -286,17 +288,15 @@ where
     }
 
     fn peek(&mut self) -> Result<&(Token<'a>, Span)> {
-        self.iter.peek().ok_or(CompilerError::eof())
+        self.iter.peek().ok_or_else(CompilerError::eof)
     }
 
     fn next(&mut self) -> Result<(Token<'a>, Span)> {
-        self.iter.next().ok_or(CompilerError::eof())
+        self.iter.next().ok_or_else(CompilerError::eof)
     }
 }
 
-// tag::parse[]
 pub fn parse(src: &str) -> Result<Vec<Stmt>> {
-    // end::parse[]
     let lexer = lex(src).spanned();
     let mut parser = Parser {
         iter: lexer.peekable(),

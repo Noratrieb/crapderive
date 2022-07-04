@@ -16,3 +16,7 @@ It would be simpler to simply walk over the AST during interpretation, but this 
 * There would still have to be a second pass over the AST to resolve labels.
 
 Therefore, an IR is used to resolve the labels and interpret it.
+
+=== Depend on `logos` for the lexer
+
+Don't write a lexer by hand, let `logos` generate it. This saves development time and makes it easier to add new features to the lexer.

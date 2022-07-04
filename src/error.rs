@@ -3,12 +3,15 @@ use dbg_pls::DebugPls;
 use logos::Span;
 
 #[derive(Debug, DebugPls)]
+// tag::error[]
 pub struct CompilerError {
     pub msg: String,
     pub span: Span,
     pub notes: Vec<(String, Span)>,
     pub help: Option<String>,
 }
+// end::error[]
+
 impl CompilerError {
     pub fn new(msg: String, span: Span, notes: Vec<(String, Span)>, help: Option<String>) -> Self {
         Self {

@@ -2,17 +2,18 @@
 
 [[section-building-block-view]]
 
-
 == Building Block View
 
 ==== Parser `parser.rs`
 
-Lexes the source code, and then parses those tokens into an abstract syntax tree.
+Tokenizes the source code, and then parses those tokens into an abstract syntax tree.
 
 [source,rust]
 ----
-include::{sourcedir}/parser.rs[tag=parse]
+include::{sourcedir}/parser.rs[tag=stmt]
 ----
+
+The AST accepts arbitrary expressions as arguments to instructions. This allows it to generate better diagnostics later.
 
 
 ==== Compiler and IR `ir.rs`

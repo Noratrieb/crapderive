@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use std::{io, process};
 
 use crate::error::CompilerError;
@@ -22,6 +24,6 @@ fn main() -> Result<(), io::Error> {
 }
 
 fn report_and_exit(file: &str, error: CompilerError) -> ! {
-    error::report(error, "test.at", &file);
+    error::report(error, "test.at", file);
     process::exit(1);
 }

@@ -1,22 +1,23 @@
+:sourcedir: ../../src
+
 [[section-concepts]]
 == Cross-cutting Concepts
 
+=== Version control
 
+This project uses git and Github for version control.
 
+=== Error handling
 
+A single type is used for handling invalid input. The error has a single message, a span that shows the location in the source code, and optionally some notes or a help message. This message is then printed using the `ariadne` crate.
 
-=== _<Concept 1>_
+[source,rust]
+----
+include::{sourcedir}/error.rs[tag=error]
+----
 
-_<explanation>_
+If the interpreter enters an invalid state, it panics.
 
+=== Unsafe code
 
-
-=== _<Concept 2>_
-
-_<explanation>_
-
-...
-
-=== _<Concept n>_
-
-_<explanation>_
+Currently, `#![forbid(unsafe_code)]` is used in the crate, but unsafe code may be used for performance improvements in the future.

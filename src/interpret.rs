@@ -212,9 +212,7 @@ impl InterpretCtx {
     fn write_addr(&mut self, addr: usize, value: u64) {
         assert!(addr + 7 < self.memory.len());
         let bytes = value.to_le_bytes();
-        for i in 0..8 {
-            self.memory[addr + i] = bytes[i];
-        }
+        self.memory[addr..(addr + 8)].copy_from_slice(&bytes[..8]);
     }
 
     fn reg(&self, reg: Register) -> u64 {

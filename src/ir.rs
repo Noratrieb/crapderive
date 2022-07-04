@@ -157,7 +157,7 @@ impl CompileCtx {
                     nested.span,
                     "save the first result in a temporary register".to_string(),
                 )),
-                ExprKind::Symbol(_) => return Err(CompilerError::simple(
+                ExprKind::Symbol(_) => Err(CompilerError::simple(
                     "symbol not allowed here".to_owned(),
                     expr.span,
                 ))
@@ -169,7 +169,7 @@ impl CompileCtx {
         match expr.kind {
             ExprKind::Number(n) => Ok(Value::Literal(n)),
             ExprKind::Symbol(_) => {
-                return Err(CompilerError::simple(
+                Err(CompilerError::simple(
                     "symbol not allowed here".to_owned(),
                     expr.span,
                 ))

@@ -1,13 +1,29 @@
 [[section-quality-scenarios]]
 == Quality Requirements
 
-
-
+* Parser tests
+* Idiomatic Rust code
+* Good diagnostics
 
 === Quality Tree
 
+[plantuml]
+----
+left to right direction
+(Quality) --> (maintainability)
+(maintainability) --> (1 parser tests)
+(maintainability) --> (2 idiomatic rust code)
 
+(Quality) --> (usability)
+(usability) --> (3 diagnostics)
+----
 
 === Quality Scenarios
 
-
+[cols="e,4e" options="header"]
+|===
+|ID|Scenario
+|1|A developer wants to add a new feature to the parser. It should be ensured that they don't break existing functionality.
+|2|A new developer that is already familiar with rust wants to get started contributing to the project. The project should be familiar to them.
+|3|Someone wants to use crapderive, but they have syntax errors since they aren't familiar with the language yet. The compiler should help them find the issues and fix them.
+|===
