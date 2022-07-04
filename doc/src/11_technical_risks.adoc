@@ -1,3 +1,26 @@
 [[section-technical-risks]]
 == Risks and Technical Debts
 
+=== Cannot do IO
+
+Due to time constraints, IO features might not be implemented.
+
+==== Mitigations
+
+Don't tell anyone.
+
+==== Avoidance
+
+Prioritize IO features highly.
+
+=== The interpreter won't compile
+
+The Rust compiler is very strict, making to possible for the interpreter to not compile.
+
+==== Mitigations
+
+Comment out the offending code. In the worse case, abuse https://github.com/rust-lang/rust/issues/98608.
+
+==== Avoidance
+
+Don't write code that doesn't compile. Follow the Rust borrowing rules.

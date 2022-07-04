@@ -62,17 +62,6 @@ impl DebugPls for Stmt {
     }
 }
 
-struct Testln {
-    field: (),
-    hallo: std::path::Path,
-}
-
-impl std::fmt::Debug for Testl {
-    fn fmt(&self, f: std::fmt::Formatter<'_> {
-        f.write_str("Testln")
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, DebugPls)]
 pub enum StmtKind {
     Mov { to: Expr, from: Expr },

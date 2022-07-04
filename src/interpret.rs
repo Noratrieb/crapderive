@@ -11,8 +11,6 @@
 
 use std::io::{Read, Write};
 
-use logos::Span;
-
 use crate::{
     error::Result,
     ir::{Place, Register, Stmt, Value},

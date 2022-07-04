@@ -41,7 +41,7 @@ Ok(
         Stmt {
             kind: Je {
                 to: Expr {
-                    kind: Name(
+                    kind: Symbol(
                         "true",
                     ),
                     span: 24..28,
@@ -52,7 +52,7 @@ Ok(
         Stmt {
             kind: Jmp {
                 to: Expr {
-                    kind: Name(
+                    kind: Symbol(
                         "false",
                     ),
                     span: 33..38,
@@ -69,7 +69,7 @@ Ok(
         Stmt {
             kind: Jmp {
                 to: Expr {
-                    kind: Name(
+                    kind: Symbol(
                         "exit",
                     ),
                     span: 49..53,
@@ -108,7 +108,7 @@ Ok(
         Stmt {
             kind: Jmp {
                 to: Expr {
-                    kind: Name(
+                    kind: Symbol(
                         "false",
                     ),
                     span: 86..91,
